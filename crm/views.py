@@ -7,6 +7,11 @@ from django.shortcuts import redirect
 from django.db.models import Sum
 import xlwt
 from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import CustomerSerializer
+
 
 now = timezone.now()
 def home(request):
@@ -18,6 +23,7 @@ def customer_list(request):
     customer = Customer.objects.filter(created_date__lte=timezone.now())
     return render(request, 'crm/customer_list.html',
                  {'customers': customer})
+
 
 @login_required
 def customer_edit(request, pk):
@@ -324,3 +330,13 @@ def export_summary(request, pk):
     ws.write(row_num, 0, sum_product_charge['charge__sum'], xlwt.XFStyle())
     wb.save(response)
     return response
+
+
+
+# Lists all customers
+class CustomerList(APIView):
+
+    def get(self,request):
+        customers_json = Customer.objects.all()
+        serializer = CustomerSerializer(customers_json, many=True)
+        return Response(serializer.data)
